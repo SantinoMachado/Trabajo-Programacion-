@@ -1,0 +1,256 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+struct libro {
+    int id;
+    string titulo;
+    string autor;
+    string anoedicion;
+    string editorial;
+    string ISBN;
+    string paginas;
+    int volumen;
+};
+
+vector<libro> listaLibros;
+int ultimoID = 0;
+
+void agregarLibro();
+void Lectura();
+void mostrarLibros();
+void buscarLibro();
+void eliminarLibro(string titulo);
+bool compararTitulos(const libro& a, const libro& b);
+bool soloNumeros(const string& str);
+
+int main() {
+    int seleccion;
+    while (true) {
+        cout << "Seleccione la accion que desea realizar" << endl;
+        cout << "Para eliminar un libro presione 1" << endl;
+        cout << "Cargar un nuevo libro presione 2" << endl;
+        cout << "Ver libros registrados presione 3" << endl;
+        cout << "Buscar un libro por titulo presione 4" << endl;
+        cout << "Salir presione 5" << endl;
+        cin >> seleccion;
+
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Entrada no valida. Por favor, ingrese un numero." << endl;
+            continue;
+        }
+        switch (seleccion) {
+            case 1: {
+                string titulo;
+                cout << "Ingrese el titulo del libro que desea eliminar: ";
+                cin.ignore();
+                getline(cin, titulo);
+                eliminarLibro(titulo);
+                break;
+            }
+            case 2:
+                agregarLibro();
+                break;
+            case 3:
+                mostrarLibros();
+                break;
+            case 4:
+                buscarLibro();
+                break;
+            case 5:
+                cout << "Saliendo..." << endl;
+                return 0;
+            default:
+                cout << "Seleccione uno de los numeros validos" << endl;
+        }
+    }
+    return 0;
+}
+
+void agregarLibro() {
+    libro nuevolibro;
+    char continuar;
+    char Ghost[1000];
+    bool libroExistente = false;
+    do {
+        cin.getline(Ghost, 1000, '\n');
+        cout << "Ingrese el titulo del libro: ";
+        getline(cin, nuevolibro.titulo);
+
+        for (auto& libro : listaLibros) {
+            if (libro.titulo == nuevolibro.titulo) {
+                cout << "Este libro ya existe. Ingrese el numero de volumenes adicionales: ";
+                int volAdicional;
+                cin >> volAdicional;
+                libro.volumen += volAdicional;
+                cout << "Volumenes actualizados: " << libro.volumen << endl;
+                libroExistente = true;
+                break;
+            }
+        }
+        if (!libroExistente) {
+            cout << "Ingrese el autor del libro: ";
+            getline(cin, nuevolibro.autor);
+
+            do {
+                cout << "Ingrese el ano de publicacion: ";
+                cin >> nuevolibro.anoedicion;
+                if (!soloNumeros(nuevolibro.anoedicion)) {
+                    cout << "Entrada no valida. Solo se permiten numeros." << endl;
+                }
+            } while (!soloNumeros(nuevolibro.anoedicion));
+            cin.ignore();
+
+            cout << "Ingrese la editorial: ";
+            getline(cin, nuevolibro.editorial);
+
+            do {
+                cout << "Ingrese el ISBN: ";
+                getline(cin, nuevolibro.ISBN);
+                if (!soloNumeros(nuevolibro.ISBN)) {
+                    cout << "Entrada no valida. Solo se permiten numeros." << endl;
+                }
+            } while (!soloNumeros(nuevolibro.ISBN));
+
+            cout << "Ingrese el numero de paginas: ";
+            getline(cin, nuevolibro.paginas);
+
+            cout << "Ingrese el numero de volumenes disponibles: ";
+            cin >> nuevolibro.volumen;
+            cin.ignore();
+
+            nuevolibro.id = ++ultimoID;
+
+            ofstream archivo("registro.txt", ios::app);
+            if (archivo.is_open()) {
+                archivo << nuevolibro.id << endl;
+                archivo << nuevolibro.titulo << endl;
+                archivo << nuevolibro.autor << endl;
+                archivo << nuevolibro.anoedicion << endl;
+                archivo << nuevolibro.editorial << endl;
+                archivo << nuevolibro.ISBN << endl;
+                archivo << nuevolibro.paginas << endl;
+                archivo << nuevolibro.volumen << endl;
+            }
+            archivo.close();
+            listaLibros.push_back(nuevolibro);
+            sort(listaLibros.begin(), listaLibros.end(), compararTitulos);
+        }
+        cout << "Deseas agregar otro libro? (s/n): ";
+        cin >> continuar;
+        cin.ignore();
+    } while (continuar == 's' || continuar == 'S');
+}
+
+bool soloNumeros(const string& str) {
+    return all_of(str.begin(), str.end(), ::isdigit);
+}
+
+bool compararTitulos(const libro& a, const libro& b) {
+    return a.titulo < b.titulo;
+}
+
+void mostrarLibros() {
+    for (const auto& libro : listaLibros) {
+        cout << "ID: " << libro.id << endl;
+        cout << "Titulo: " << libro.titulo << endl;
+        cout << "Autor: " << libro.autor << endl;
+        cout << "Ano de publicacion: " << libro.anoedicion << endl;
+        cout << "Editorial: " << libro.editorial << endl;
+        cout << "ISBN: " << libro.ISBN << endl;
+        cout << "Paginas: " << libro.paginas << endl;
+        cout << "Volumenes disponibles: " << libro.volumen << endl;
+        cout << "--------------------------" << endl;
+    }
+}
+
+void buscarLibro() {
+    string titulo;
+    cout << "Ingrese el titulo del libro que desea buscar: ";
+    cin.ignore();
+    getline(cin, titulo);
+    bool encontrado = false;
+    for (const auto& libro : listaLibros) {
+        if (libro.titulo == titulo) {
+            cout << "ID: " << libro.id << endl;
+            cout << "Titulo: " << libro.titulo << endl;
+            cout << "Autor: " << libro.autor << endl;
+            cout << "Ano de publicacion: " << libro.anoedicion << endl;
+            cout << "Editorial: " << libro.editorial << endl;
+            cout << "ISBN: " << libro.ISBN << endl;
+            cout << "Paginas: " << libro.paginas << endl;
+            cout << "Volumenes disponibles: " << libro.volumen << endl;
+            cout << "--------------------------" << endl;
+            encontrado = true;
+            break;
+        }
+    }
+    if (!encontrado) {
+        cout << "Libro no encontrado." << endl;
+    }
+}
+
+void Lectura() {
+    ifstream archivo("registro.txt");
+    if (!archivo.is_open()) {
+        cerr << "No se pudo abrir el archivo." << endl;
+        return;
+    }
+    libro nuevolibro;
+    while (archivo >> nuevolibro.id) {
+        archivo.ignore();
+        getline(archivo, nuevolibro.titulo);
+        getline(archivo, nuevolibro.autor);
+        getline(archivo, nuevolibro.anoedicion);
+        getline(archivo, nuevolibro.editorial);
+        getline(archivo, nuevolibro.ISBN);
+        getline(archivo, nuevolibro.paginas);
+        archivo >> nuevolibro.volumen;
+        archivo.ignore();
+        listaLibros.push_back(nuevolibro);
+    }
+    archivo.close();
+}
+
+void eliminarLibro(string titulo) {
+    auto it = listaLibros.begin();
+    bool encontrado = false;
+    while (it != listaLibros.end()) {
+        if (it->titulo == titulo) {
+            it = listaLibros.erase(it);
+            encontrado = true;
+            cout << "Libro \"" << titulo << "\" eliminado exitosamente de la lista." << endl;
+        } else {
+            
+
+    if (encontrado) {
+        
+        ofstream archivo("registro_temp.txt", ios::out);
+        for (const auto& libro : listaLibros) {
+            archivo << libro.id << endl;
+            archivo << libro.titulo << endl;
+            archivo << libro.autor << endl;
+            archivo << libro.anoedicion << endl;
+            archivo << libro.editorial << endl;
+            archivo << libro.ISBN << endl;
+            archivo << libro.paginas << endl;
+            archivo << libro.volumen << endl;
+        }
+        archivo.close();
+        remove("registro.txt");
+        rename("registro_temp.txt", "registro.txt");
+
+        cout << "Libro \"" << titulo << "\" eliminado exitosamente del archivo." << endl;
+    } else {
+        cout << "Libro \"" << titulo << "\" no encontrado." << endl;
+    }
+        
+}
+    }
+}
